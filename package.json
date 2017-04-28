@@ -1,0 +1,28 @@
+{
+  "name": "ex_moneybook",
+  "version": "1.0.0",
+  "description": "Moneybook service",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1nterp/ex_moneybook.git"
+  },
+  "keywords": [
+    "Moneybook",
+    "MEAN"
+  ],
+  "author": "InterP",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/1nterp/ex_moneybook/issues"
+  },
+  "homepage": "https://github.com/1nterp/ex_moneybook#readme",
+  "dependencies": {
+    "body-parser": "1.17.1",
+    "express": "4.15.2",
+    "mysql": "2.13.0"
+  }
+}
