@@ -5,6 +5,7 @@ var connection = mysql.createConnection(dbconfig);
 
 var app        = express();
 var bodyParser = require('body-parser');
+var pg = require('pg');
 
 // configuration ===============================================================
 app.set('port', process.env.PORT || 3000);
@@ -13,6 +14,18 @@ app.use(bodyParser.json());
 
 // routing ===============================================================
 app.get('/', function(req, res){
+
+  pg.defaults.ssl = true;
+  pg.connect(process.env.DATABASE_URL, function(err, client) {
+    if (err) throw err;
+    console.log('Connected to postgres! Getting schemas...');
+
+    client
+      .query('SELECT table_schema,table_name FROM information_schema.tables;')
+      .on('row', function(row) {
+        console.log(JSON.stringify(row));
+      });
+  });
   res.send('Root');
 });
 
