@@ -15,7 +15,7 @@ app.engine('html', require('ejs').renderFile);
 
 // routing ===============================================================
 app.get('/', function(req, res){
-    res.render('test.html');
+    res.render('test2.html');
 });
 
 app.get('/person', function(req, res) {
