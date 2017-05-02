@@ -22,17 +22,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.min.js"></script>
     <script>
       angular.module('sortApp', [])
-        .controller('mainController', function($scope) {
-          $scope.sortType     = 'name'; // set the default sort type
+        .controller('mainController', function($scope, $http) {
+          $scope.sortType     = 'datetime'; // set the default sort type
           $scope.sortReverse  = false;  // set the default sort order
 
-          // create the list of sushi rolls
-          $scope.item= [
-            { datetime: '2017/03/01', category: '식비', subcat: '주식', contents:'점심 (순대국)', payment:'신한카드', income:0 , outcome:6000 },
-            { datetime: '2017/02/28', category: '경조사', subcat: '축의금', contents:'결혼식', payment:'체크카드', income:0 , outcome:50000 },
-            { datetime: '2017/03/02', category: '생활잡화', subcat: '기타잡화', contents:'방향제', payment:'우리카드', income:0 , outcome:3200 },
-            { datetime: '2017/03/26', category: '수입', contents:'주급', payment:'현금', income:300000 , outcome:0 },
-          ];
+          $http.get("/item").then(function(response) {
+             $scope.item = response.data;
+            }, function myError(response) {
+             $scope.myData = ['Error'];
+          });
+
+//          // create the list of sushi rolls
+//          $scope.item= [
+//            { datetime: '2017/03/01', main_category: '식비', sub_category: '주식', contents:'점심 (순대국)', payment:'신한카드', income:0 , outcome:6000 },
+//            { datetime: '2017/02/28', main_category: '경조사', sub_category: '축의금', contents:'결혼식', payment:'체크카드', income:0 , outcome:50000 },
+//            { datetime: '2017/03/02', main_category: '생활잡화', sub_category: '기타잡화', contents:'방향제', payment:'우리카드', income:0 , outcome:3200 },
+//            { datetime: '2017/03/26', main_category: '수입', contents:'주급', payment:'현금', income:300000 , outcome:0 },
+//          ];
       });
 
       $.fn.datepicker.defaults.format = "yyyy-mm-dd";
@@ -53,7 +59,7 @@
           <input data-provide="datepicker" class="form-control">
         </div>
         <div class='col-md-1' style="width:11%; padding:0 5px">
-          <select class="form-control" class="form-control" id="category">
+          <select class="form-control" class="form-control" id="main_category">
             <option>-</option>
             <option>수입</option>
             <option>식비</option>
@@ -62,7 +68,7 @@
           </select>
         </div>
         <div class='col-md-1' style="width:11%; padding:0 5px">
-          <select class="form-control" class="form-control" id="sub-category">
+          <select class="form-control" class="form-control" id="sub-main_category">
             <option>-</option>
             <option>주식</option>
             <option>부식</option>
@@ -96,17 +102,17 @@
   	          </a>
   	        </td>
   	        <td class="col-md-1">
-  	          <a href="#" ng-click="sortType = 'category'; sortReverse = !sortReverse">
+  	          <a href="#" ng-click="sortType = 'main_category'; sortReverse = !sortReverse">
               분류
-  	            <span ng-show="sortType == 'category' && !sortReverse" class="fa fa-caret-down"></span>
-  	            <span ng-show="sortType == 'category' && sortReverse" class="fa fa-caret-up"></span>
+  	            <span ng-show="sortType == 'main_category' && !sortReverse" class="fa fa-caret-down"></span>
+  	            <span ng-show="sortType == 'main_category' && sortReverse" class="fa fa-caret-up"></span>
   	          </a>
   	        </td>
   	        <td class="col-md-1">
-  	          <a href="#" ng-click="sortType = 'subcat'; sortReverse = !sortReverse">
+  	          <a href="#" ng-click="sortType = 'sub_category'; sortReverse = !sortReverse">
               소분류
-  	            <span ng-show="sortType == 'subcat' && !sortReverse" class="fa fa-caret-down"></span>
-  	            <span ng-show="sortType == 'subcat' && sortReverse" class="fa fa-caret-up"></span>
+  	            <span ng-show="sortType == 'sub_category' && !sortReverse" class="fa fa-caret-down"></span>
+  	            <span ng-show="sortType == 'sub_category' && sortReverse" class="fa fa-caret-up"></span>
   	          </a>
   	        </td>
   	        <td class="col-md-4">
@@ -142,8 +148,8 @@
   	    <tbody>
   	      <tr ng-repeat="i in item | orderBy:sortType:sortReverse | filter:searchFish">
   	        <td>{{ i.datetime }}</td>
-  	        <td>{{ i.category }}</td>
-  	        <td>{{ i.subcat }}</td>
+  	        <td>{{ i.main_category }}</td>
+  	        <td>{{ i.sub_category }}</td>
   	        <td>{{ i.contents }}</td>
   	        <td>{{ i.payment }}</td>
   	        <td>{{ i.income }}</td>

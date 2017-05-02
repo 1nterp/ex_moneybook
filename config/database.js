@@ -4,5 +4,5 @@ module.exports = {
   user     : 'interp',
   password : 'gksrmf0416',
   port     : 3306,
-  database : 'my_db'
+  database : 'mydb'
 };
