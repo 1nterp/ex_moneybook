@@ -1,4 +1,8 @@
 drop database mydb;
+
+create user 'interp'@'localhost' identified by '---';
+GRANT ALL ON mydb.* TO 'interp'@'localhost';
+
 create database mydb default character set utf8 default collate utf8_general_ci;
 use mydb;
 
@@ -24,7 +28,7 @@ create table scat (
 
 create table item (
     id integer AUTO_INCREMENT,
-    datetime date,
+    item_date date,
     mcat_id smallint,
     scat_id smallint,
     contents varchar(200),

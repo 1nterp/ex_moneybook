@@ -6,11 +6,12 @@ var connection = mysql.createConnection(dbconfig);
 var app        = express();
 var bodyParser = require('body-parser');
 
-var selectQuery = "select DATE_FORMAT(i.datetime, '%Y/%m/%d') as datetime, " +
+var selectQuery = "select i.id, DATE_FORMAT(i.item_date, '%Y-%m-%d') as item_date, " +
                   "       m.name as main_category, s.name as sub_category, " +
                   "       i.contents, p.name as payment, i.income, i.outcome" +
                   "  from   item i, mcat m, scat s, payment p" +
-                  "  where i.mcat_id = m.id and i.scat_id = s.id and i.payment_id = p.id;";
+                  "  where i.mcat_id = m.id and i.scat_id = s.id and i.payment_id = p.id" +
+                  "        and month(i.item_date) = ? and year(i.item_date) = ?;";
 
 // configuration ===============================================================
 app.set('port', process.env.PORT || 3000);
@@ -25,10 +26,13 @@ app.get('/', function(req, res){
 });
 
 app.get('/item', function(req, res) {
-  connection.query(selectQuery, function(err, rows) {
+  var sql = selectQuery;
+  var binds = [req.query.target_month, req.query.target_year]
+  sql = mysql.format(sql, binds)
+  
+  connection.query(sql, function(err, rows) {
     if(err) throw err;
     res.json(rows);
-    console.log(rows);
   });
 });
 
@@ -36,36 +40,55 @@ app.get('/main_category', function(req, res) {
   connection.query("select * from mcat", function(err, rows) {
     if(err) throw err;
     res.json(rows);
-    console.log(rows);
   });
 });
 
 app.get('/sub_category', function(req, res) {
-    console.log(req.params);
-    connection.query("select * from scat s where s.mcat_id = ?", req.params.mcat_id, function(err, rows) {
+    connection.query("select * from scat s where s.mcat_id = ?", req.query.mcat_id, function(err, rows) {
     if(err) throw err;
     res.json(rows);
-    console.log(rows);
   });
 });
 
-//app.post('/item', function(req, res) {
-//  var item = {
-//    'datetime'   : req.body.datetime,
-//    'mcat_id'    : req.body.mcat_id,
-//    'scat_id'    : req.body.scat_id,
-//    'contents'   : req.body.contents,
-//    'payment_id' : req.body.payment_id,
-//    'income'     : req.body.income,
-//    'outcome'    : req.body.outcome
-//  };
-//
-//  var queryStr = 'insert into item(datetime, mcat_id, scat_id, contents, payment_id, income, outcome) set ?';
-//  var queryEx = connection.query(queryStr, item, function(err, rows) {
-//    if(err) throw err;
-//    res.status(200).send('success')
-//  });
-//});
+app.get('/payment', function(req, res) {
+  connection.query("select * from payment", function(err, rows) {
+    if(err) throw err;
+    res.json(rows);
+  });
+});
+
+app.post('/item', function(req, res) {
+  var item = {
+    'item_date'  : req.query.item_date,
+    'mcat_id'    : req.query.mcat_id,
+    'scat_id'    : req.query.scat_id,
+    'contents'   : req.query.contents,
+    'payment_id' : req.query.payment_id,
+    'income'     : req.query.income,
+    'outcome'    : req.query.outcome
+  };
+  
+  if (req.query.income == null) {
+    item.income = 0;
+  }
+  
+  if (req.query.outcome == null) {
+    item.outcome = 0;
+  }
+ 
+  var queryStr = 'insert into item set ?';
+  var queryEx = connection.query(queryStr, item, function(err, rows) {
+    if(err) throw err;    
+    res.status(200).json(rows);
+  });
+});
+
+app.delete('/item', function(req, res) {
+    connection.query("delete from item where id = ?", req.query.item_id, function(err, rows) {
+    if(err) throw err;
+    res.json(rows);
+  });
+});
 
 app.listen(app.get('port'), function () {
   console.log('Express server listening on port ' + app.get('port'));

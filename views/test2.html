@@ -12,6 +12,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker3.min.css">
     <style>
         body { padding-top:50px; }
+        
+        .mb-rows {
+          vertical-align: middle !important;
+        }
+        .mb-buttons {
+          padding: 3px 8px !important;
+        }
     </style>
 
     <!-- JS -->
@@ -23,19 +30,30 @@
     <script>
       angular.module('sortApp', [])
         .controller('mainController', function($scope, $http) {
-          $scope.sortType     = 'datetime'; // set the default sort type
+          $scope.sortType     = 'item_date'; // set the default sort type
           $scope.sortReverse  = false;  // set the default sort order
-
-          $http.get("/item").then(function(response) {
-             $scope.item = response.data;
-            }, function myError(response) {
-             $scope.myData = ['Error'];
-          });
+          $scope.item_date    = new Date();
+          
+          $http({ url: "/item",
+                  method: "GET",
+                  headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                  params: {target_month : 2, target_year : 2017}
+          }).then (function(response) {
+             $scope.items = response.data;
+          }, function myError(response) {
+            $scope.scats = [{id : 0, name : 'error'}];
+          })
 
           $http.get("/main_category").then(function(response) {
              $scope.mcats = response.data;
             }, function myError(response) {
              $scope.mcats = [{id : 0, name : 'error'}];
+          });
+          
+          $http.get("/payment").then(function(response) {
+             $scope.payments = response.data;
+            }, function myError(response) {
+             $scope.payment = [{id : 0, name : 'error'}];
           });
 
           $scope.changeCategory = function() {
@@ -43,7 +61,7 @@
               $http({ url: "/sub_category",
                       method: "GET",
                       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                      params: {mcat_id : 1}
+                      params: {mcat_id : $scope.main_category.id}
               }).then (function(response) {
                  $scope.scats = response.data;
               }, function myError(response) {
@@ -52,50 +70,51 @@
             }
           };
 
-//
-//          $http.get("/payment").then(function(response) {
-//             $scope.payment = response.data;
-//            }, function myError(response) {
-//             $scope.payment = [{id : 0, name : 'error'}];
-//          });
-//
-//          $scope.addItem = function() {
-//            var postedData = { datetime      : $scope.datetime, 
-//                               mcat_id       : $scope.mcat_id,
-//                               scat_id       : $scope.scat_id,
-//                               contents      : $scope.contents,
-//                               payment_id    : $scope.payment_id,
-//                               income        : $scope.income,
-//                               outcome       : $scope.outcome });
-//
-//            $http({ url: "/item",
-//                    method "POST",
-//                    params: postedData
-//            }).then(function(response) {
-//              $scope.item.push({ datetime      : $scope.datetime, 
-//                                 main_category : $scope.main_category,
-//                                 sub_category  : $scope.sub_category,
-//                                 contents      : $scope.contents,
-//                                 payment       : $scope.payment,
-//                                 income        : $scope.income,
-//                                 outcome       : $scope.outcome });
-//            }).catch(function(response) {
-//                console.log(response.status);
-//                console.log(response.data);
-//            });
-//
-//          };
+          $scope.addItem = function() {
+            var postedData = { item_date     : $scope.item_date, 
+                               mcat_id       : $scope.main_category.id,
+                               scat_id       : $scope.sub_category.id,
+                               contents      : $scope.contents,
+                               payment_id    : $scope.payment.id,
+                               income        : $scope.income,
+                               outcome       : $scope.outcome };
 
-//          // create the list of sushi rolls
-//          $scope.item= [
-//            { datetime: '2017/03/01', main_category: '식비', sub_category: '주식', contents:'점심 (순대국)', payment:'신한카드', income:0 , outcome:6000 },
-//            { datetime: '2017/02/28', main_category: '경조사', sub_category: '축의금', contents:'결혼식', payment:'체크카드', income:0 , outcome:50000 },
-//            { datetime: '2017/03/02', main_category: '생활잡화', sub_category: '기타잡화', contents:'방향제', payment:'우리카드', income:0 , outcome:3200 },
-//            { datetime: '2017/03/26', main_category: '수입', contents:'주급', payment:'현금', income:300000 , outcome:0 },
-//          ];
+            $http({ url: "/item",
+                    method: "POST",
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    params: postedData
+            }).then(function(response) {
+              $scope.items.push({ id            : response.data.insertId,
+                                 item_date     : $scope.item_date, 
+                                 main_category : $scope.main_category.name,
+                                 sub_category  : $scope.sub_category.name,
+                                 contents      : $scope.contents,
+                                 payment       : $scope.payment.name,
+                                 income        : $scope.income,
+                                 outcome       : $scope.outcome });
+            }).catch(function(response) {
+              console.log(response.status);
+              console.log(response.data);
+            });
+          };
+          
+          $scope.deleteItem = function(item) {
+            $http({ url: "/item",
+                    method: "DELETE",
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    params: {item_id : item.id}
+            }).then(function(response) {
+              var index = $scope.items.indexOf(item);
+              $scope.items.splice(index, 1); 
+            }).catch(function(response) {
+              console.log(response.status);
+              console.log(response.data);
+            });
+            
+          };
       });
 
-      $.fn.datepicker.defaults.format = "yyyy-mm-dd";
+      $.fn.datepicker.defaults.format = "yyyy/mm/dd";
       $.fn.datepicker.defaults.todayHighlight = true;
     </script>
     <script type="text/javascript">
@@ -107,10 +126,10 @@
 
 	<div class="container" ng-app="sortApp" ng-controller="mainController">
 
-    <form>
+    <form ng-submit="addItem()">
       <div class="row">
         <div class='col-md-2' style="width:12%; padding:0 5px">
-          <input data-provide="datepicker" class="form-control" ng-model="datetime">
+          <input type="date" data-provide="datepicker" class="form-control" ng-model="item_date" datetime="yyyy/MM/dd">
         </div>
         <div class='col-md-1' style="width:11%; padding:0 5px">
           <select class="form-control" ng-model="main_category" ng-options="x.name for x in mcats" ng-change="changeCategory()">
@@ -121,30 +140,35 @@
           </select>
         </div>
         <div class='col-md-3' style="width:26%; padding:0 5px">
-          <input type="text" class="form-control" id="contents" />
+          <input type="text" class="form-control" ng-model="contents" id="contents" />
         </div>
         <div class='col-md-1' style="width:11%; padding:0 5px">
-          <select class="form-control" lass="form-control" id="payment">
-            <option>-</option>
-            <option>현금</option>
-            <option>카드</option>
+          <select class="form-control" ng-model="payment" ng-options="x.name for x in payments">
           </select>
         </div>
         <div class='col-md-1' style="width:11%; padding:0 5px">
-          <input type="text" class="form-control" id="amount" />
+          <input type="text" class="form-control" ng-model="income" id="income" />
+        </div>
+        <div class='col-md-1' style="width:11%; padding:0 5px">
+          <input type="text" class="form-control" ng-model="outcome" id="outcome" />
+        </div>
+        <div class='col-md-1' style="width:5%; padding:0 5px">
+          <button type="submit" class="btn btn-success">
+            <i class="fa fa-check"></i>
+          </button>
         </div>
       </div>
     </form>
 
-    <div class="row" style="padding:10px 0 0 0;">
+    <div class="row" style="padding:30px 0 0 0;">
   	  <table class="table table-striped">
   	    <thead>
   	      <tr>
   	        <td class="col-md-1">
-  	          <a href="#" ng-click="sortType = 'datetime'; sortReverse = !sortReverse">
+  	          <a href="#" ng-click="sortType = 'item_date'; sortReverse = !sortReverse">
   	            날짜
-  	            <span ng-show="sortType == 'datetime' && !sortReverse" class="fa fa-caret-down"></span>
-  	            <span ng-show="sortType == 'datetime' && sortReverse" class="fa fa-caret-up"></span>
+  	            <span ng-show="sortType == 'item_date' && !sortReverse" class="fa fa-caret-down"></span>
+  	            <span ng-show="sortType == 'item_date' && sortReverse" class="fa fa-caret-up"></span>
   	          </a>
   	        </td>
   	        <td class="col-md-1">
@@ -189,17 +213,25 @@
   	            <span ng-show="sortType == 'outcome' && sortReverse" class="fa fa-caret-up"></span>
   	          </a>
   	        </td>
+            <td class="col-md-1">
+              <!-- blank -->
+  	        </td>
   	      </tr>
   	    </thead>
   	    <tbody>
-  	      <tr ng-repeat="i in item | orderBy:sortType:sortReverse | filter:searchFish">
-  	        <td>{{ i.datetime }}</td>
-  	        <td>{{ i.main_category }}</td>
-  	        <td>{{ i.sub_category }}</td>
-  	        <td>{{ i.contents }}</td>
-  	        <td>{{ i.payment }}</td>
-  	        <td>{{ i.income }}</td>
-  	        <td>{{ i.outcome }}</td>
+  	      <tr ng-repeat="i in items | orderBy:sortType:sortReverse | filter:searchFish track by i.id">
+            <td class="mb-rows">{{ i.item_date }}</td>
+  	        <td class="mb-rows">{{ i.main_category }}</td>
+  	        <td class="mb-rows">{{ i.sub_category }}</td>
+  	        <td class="mb-rows">{{ i.contents }}</td>
+  	        <td class="mb-rows">{{ i.payment }}</td>
+  	        <td class="mb-rows">{{ i.income }}</td>
+  	        <td class="mb-rows">{{ i.outcome }}</td>
+            <td class="mb-rows">
+              <button class="btn btn-danger btn-sm mb-buttons" ng-click="deleteItem(i)">
+                <i class="fa fa-trash"></i>
+              </button>
+            </td>
   	      </tr>
   	    </tbody>
   	  </table>
