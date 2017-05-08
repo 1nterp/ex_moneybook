@@ -32,6 +32,23 @@ app.get('/item', function(req, res) {
   });
 });
 
+app.get('/main_category', function(req, res) {
+  connection.query("select * from mcat", function(err, rows) {
+    if(err) throw err;
+    res.json(rows);
+    console.log(rows);
+  });
+});
+
+app.get('/sub_category', function(req, res) {
+    console.log(req.params);
+    connection.query("select * from scat s where s.mcat_id = ?", req.params.mcat_id, function(err, rows) {
+    if(err) throw err;
+    res.json(rows);
+    console.log(rows);
+  });
+});
+
 //app.post('/item', function(req, res) {
 //  var item = {
 //    'datetime'   : req.body.datetime,

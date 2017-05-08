@@ -32,6 +32,60 @@
              $scope.myData = ['Error'];
           });
 
+          $http.get("/main_category").then(function(response) {
+             $scope.mcats = response.data;
+            }, function myError(response) {
+             $scope.mcats = [{id : 0, name : 'error'}];
+          });
+
+          $scope.changeCategory = function() {
+            if ($scope.main_category.id > 0) {
+              $http({ url: "/sub_category",
+                      method: "GET",
+                      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                      params: {mcat_id : 1}
+              }).then (function(response) {
+                 $scope.scats = response.data;
+              }, function myError(response) {
+                $scope.scats = [{id : 0, name : 'error'}];
+              })
+            }
+          };
+
+//
+//          $http.get("/payment").then(function(response) {
+//             $scope.payment = response.data;
+//            }, function myError(response) {
+//             $scope.payment = [{id : 0, name : 'error'}];
+//          });
+//
+//          $scope.addItem = function() {
+//            var postedData = { datetime      : $scope.datetime, 
+//                               mcat_id       : $scope.mcat_id,
+//                               scat_id       : $scope.scat_id,
+//                               contents      : $scope.contents,
+//                               payment_id    : $scope.payment_id,
+//                               income        : $scope.income,
+//                               outcome       : $scope.outcome });
+//
+//            $http({ url: "/item",
+//                    method "POST",
+//                    params: postedData
+//            }).then(function(response) {
+//              $scope.item.push({ datetime      : $scope.datetime, 
+//                                 main_category : $scope.main_category,
+//                                 sub_category  : $scope.sub_category,
+//                                 contents      : $scope.contents,
+//                                 payment       : $scope.payment,
+//                                 income        : $scope.income,
+//                                 outcome       : $scope.outcome });
+//            }).catch(function(response) {
+//                console.log(response.status);
+//                console.log(response.data);
+//            });
+//
+//          };
+
 //          // create the list of sushi rolls
 //          $scope.item= [
 //            { datetime: '2017/03/01', main_category: '식비', sub_category: '주식', contents:'점심 (순대국)', payment:'신한카드', income:0 , outcome:6000 },
@@ -56,22 +110,14 @@
     <form>
       <div class="row">
         <div class='col-md-2' style="width:12%; padding:0 5px">
-          <input data-provide="datepicker" class="form-control">
+          <input data-provide="datepicker" class="form-control" ng-model="datetime">
         </div>
         <div class='col-md-1' style="width:11%; padding:0 5px">
-          <select class="form-control" class="form-control" id="main_category">
-            <option>-</option>
-            <option>수입</option>
-            <option>식비</option>
-            <option>교통비</option>
-            <option>생활잡화</option>
+          <select class="form-control" ng-model="main_category" ng-options="x.name for x in mcats" ng-change="changeCategory()">
           </select>
         </div>
         <div class='col-md-1' style="width:11%; padding:0 5px">
-          <select class="form-control" class="form-control" id="sub-main_category">
-            <option>-</option>
-            <option>주식</option>
-            <option>부식</option>
+          <select class="form-control" ng-model="sub_category" ng-options="x.name for x in scats" >
           </select>
         </div>
         <div class='col-md-3' style="width:26%; padding:0 5px">
