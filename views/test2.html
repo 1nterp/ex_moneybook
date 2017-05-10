@@ -19,20 +19,44 @@
         .mb-buttons {
           padding: 3px 8px !important;
         }
+        
+        #month-picker-container .datepicker-inline {
+          width: 450px;
+        }
+        
+        #month-picker-container .datepicker-inline table td span.month {
+          width: 10%
+        }
     </style>
 
     <!-- JS -->
-    <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
     <!-- https://bootstrap-datepicker.readthedocs.io/en/stable/ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.min.js"></script>
     <script>
-      angular.module('sortApp', [])
-        .controller('mainController', function($scope, $http) {
+      var myApp = angular.module('sortApp', []);
+      
+      myApp.filter('range', function() {
+        return function(input, total) {
+          total = parseInt(total);
+
+          for (var i=0; i<total; i++) {
+            input.push(i);
+          }
+
+          return input;
+        };
+      });
+      
+      myApp.controller('mainController', function($scope, $http) {
           $scope.sortType     = 'item_date'; // set the default sort type
           $scope.sortReverse  = false;  // set the default sort order
           $scope.item_date    = new Date();
+          
+          $scope.selected_year  = $scope.item_date.getFullYear();
+          $scope.selected_month = $scope.item_date.getMonth();
           
           $http({ url: "/item",
                   method: "GET",
@@ -114,22 +138,43 @@
           };
       });
 
-      $.fn.datepicker.defaults.format = "yyyy/mm/dd";
+      $.fn.datepicker.defaults.format = "yyyy-mm-dd";
       $.fn.datepicker.defaults.todayHighlight = true;
     </script>
     <script type="text/javascript">
-      $('.datepicker').datepicker()
+      $('.datepicker').datepicker();
+      
+      $('#month-picker-container div').datepicker({
+        minViewMode: 1,
+        maxViewMode: 2
+      });
     </script>
 
 </head>
 <body>
 
 	<div class="container" ng-app="sortApp" ng-controller="mainController">
+  
+    <!-- Month Picker -->
+    <div class="row">
+      <div class="col-md-1">
+        <span ng-bind="selected_year" />
+      </div>
+      <div id="month-picker-container" class="col-md-10">
+        <div class="btn-group" data-toggle="buttons">
+          <label ng-repeat="n in [] | range:12"
+                 ng-class="{'btn btn-info active':(selected_month == n), 'btn btn-info':(selected_month != n)}" >
+            <input type="radio" name="selected_month" ng-model="selected_month" value="{{n}}" >{{n+1}}월
+          </label>
+        </div>
+      </div>
+    </div>
 
+    <!-- Add Item Form -->
     <form ng-submit="addItem()">
-      <div class="row">
+      <div class="row" style="padding:30px 0 0 0;">
         <div class='col-md-2' style="width:12%; padding:0 5px">
-          <input type="date" data-provide="datepicker" class="form-control" ng-model="item_date" datetime="yyyy/MM/dd">
+          <input type="date" data-provide="datepicker" class="form-control" ng-model="item_date" datetime="yyyy-MM-dd">
         </div>
         <div class='col-md-1' style="width:11%; padding:0 5px">
           <select class="form-control" ng-model="main_category" ng-options="x.name for x in mcats" ng-change="changeCategory()">
